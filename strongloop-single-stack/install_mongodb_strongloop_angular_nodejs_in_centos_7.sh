@@ -80,7 +80,7 @@ if [ -n "$SAMPLE" ]; then
 
 		#start application
 		cd strongloop-angular-mongo-sample
-		sed -i -e "s/sampleUserPwd/$dbUserPwd/g" server/datasource.json >> $logfile 2>&1 || { echo "---Failed to configure datasource with mongo user password---" | tee -a $logfile; exit 1; } 
+		sed -i -e "s/sampleUserPwd/$dbUserPwd/g" server/datasources.json >> $logfile 2>&1 || { echo "---Failed to configure datasource with mongo user password---" | tee -a $logfile; exit 1; } 
 		slc run & >> $logfile 2>&1 || { echo "---Failed to start the application---" | tee -a $logfile; exit 1; }
 		
 		echo "---finish installing sample application---" | tee -a $logfile 2>&1 		
