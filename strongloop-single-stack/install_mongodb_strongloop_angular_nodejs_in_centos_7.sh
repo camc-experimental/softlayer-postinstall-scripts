@@ -70,7 +70,8 @@ if [ -n "$SAMPLE" ]; then
 		echo "---start installing sample application---" | tee -a $logfile 2>&1 
 		
 		#create mongodb user
-		mongo admin --eval "db.createUser({user: \"sampleUser\", pwd: \"sampleUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" >> $logfile 2>&1 || { echo "---Failed to create MongoDB user---" | tee -a $logfile; exit 1; }
+		dbUserPwd=$(date | md5sum | head -c 10)
+		mongo admin --eval "db.createUser({user: \"sampleUser\", pwd: \"$dbUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" >> $logfile 2>&1 || { echo "---Failed to create MongoDB user---" | tee -a $logfile; exit 1; }
 		
 		#download and untar application
 		yum install curl -y >> $logfile 2>&1 || { echo "---Failed to install curl---" | tee -a $logfile; exit 1; }
@@ -79,6 +80,7 @@ if [ -n "$SAMPLE" ]; then
 
 		#start application
 		cd strongloop-angular-mongo-sample
+		sed -i -e "s/sampleUserPwd/$dbUserPwd/g" server/datasource.json >> $logfile 2>&1 || { echo "---Failed to configure datasource with mongo user password---" | tee -a $logfile; exit 1; } 
 		slc run & >> $logfile 2>&1 || { echo "---Failed to start the application---" | tee -a $logfile; exit 1; }
 		
 		echo "---finish installing sample application---" | tee -a $logfile 2>&1 		
