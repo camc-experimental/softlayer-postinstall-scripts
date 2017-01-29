@@ -26,8 +26,11 @@ mkdir userdata
 mount /dev/xvdh1 userdata 
 
 CHEFIP=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["chefIP"];')
-echo "---my chef server ip is CHEFIP$---" | tee -a $LOGFILE 2>&1
+echo "---my chef server ip is $CHEFIP---" | tee -a $LOGFILE 2>&1
 
+CHEFHOSTNAME=$(dig -x $CHEFIP +short | sed -e 's/.$//')
+echo "---my chef server dns hostname is $CHEFHOSTNAME---" | tee -a $LOGFILE 2>&1
 
+echo $CHEFIP $CHEFHOSTNAME >> /etc/hosts
 
 echo "---hosts file updates successfully---" | tee -a $LOGFILE 2>&1 
