@@ -48,9 +48,9 @@ if [ -n "$SAMPLE" ]; then
 		echo "---start installing sample application---" | tee -a $logfile 2>&1 
 		
 		#create mongodb user and allow external access
-		sleep 60
+		sleep 30
 		mongo admin --eval "db.createUser({user: \"sampleUser\", pwd: \"$DBUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" >> $logfile 2>&1 || { echo "---Failed to create MongoDB user---" | tee -a $logfile; exit 1; }
-		sed -i -e 's/  bindIp/#  bindIp/g' etc/mongod.conf >> $logfile 2>&1 || { echo "---Failed to configure mongod---" | tee -a $logfile; exit 1; }
+		sed -i -e 's/  bindIp/#  bindIp/g' /etc/mongod.conf >> $logfile 2>&1 || { echo "---Failed to configure mongod---" | tee -a $logfile; exit 1; }
 		service mongod restart >> $logfile 2>&1 || { echo "---Failed to restart mongod---" | tee -a $logfile; exit 1; }
 				
 		echo "---finish installing sample application---" | tee -a $logfile 2>&1 		
