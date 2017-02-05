@@ -5,11 +5,14 @@
 #         Copyright IBM Corp. 2012, 2016
 #################################################################
 
-set -o errexit
-set -o nounset
-set -o pipefail
+#set -o errexit
+#set -o nounset
+#set -o pipefail
 
 LOGFILE="/var/log/createCAMUser.log"
+
+apt-get update | tee -a $LOGFILE 2>&1
+apt-get install python-minimal -y | tee -a $LOGFILE 2>&1
 
 echo "---start createCAMUser---" | tee -a $LOGFILE 2>&1
 
