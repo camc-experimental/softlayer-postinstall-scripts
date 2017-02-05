@@ -24,7 +24,7 @@ CAMPWD=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sy
 echo "---CAMUSER $CAMUSER---" | tee -a $LOGFILE 2>&1 
 echo "---CAMPWD $CAMPWD---" | tee -a $LOGFILE 2>&1 
 PASS=$(perl -e 'print crypt($ARGV[0], "password")' $CAMPWD)
-useradd -m -p $PASS $CAMUSER
+useradd -m -s bash -p $PASS $CAMUSER
 echo "$CAMUSER ALL=(ALL:ALL) NOPASSWD:ALL" | (EDITOR="tee -a" visudo)
 
 echo "---finished creating CAMUser $CAMUSER---" | tee -a $LOGFILE 2>&1 
