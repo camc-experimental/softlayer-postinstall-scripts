@@ -29,7 +29,8 @@ enabled=1
 gpgkey=https://www.mongodb.org/static/pgp/server-3.4.asc
 EOT
 yum install -y mongodb-org >> $logfile 2>&1 || { echo "---Failed to install mongodb-org---" | tee -a $logfile; exit 1; }
-service mongod start >> $logfile 2>&1 || { echo "---Failed to start mongodb---" | tee -a $logfile; exit 1; }
+#service mongod start >> $logfile 2>&1 || { echo "---Failed to start mongodb---" | tee -a $logfile; exit 1; }
+systemctl start mongod >> $logfile 2>&1 || { echo "---Failed to start mongodb---" | tee -a $logfile; exit 1; }
 echo "---finish installing mongodb---" | tee -a $logfile 2>&1
 
 #install sample application
@@ -40,5 +41,6 @@ echo "---start installing sample application---" | tee -a $logfile 2>&1
 sleep 30
 mongo admin --eval "db.createUser({user: \"sampleUser\", pwd: \"$DBUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" >> $logfile 2>&1 || { echo "---Failed to create MongoDB user---" | tee -a $logfile; exit 1; }
 sed -i -e 's/  bindIp/#  bindIp/g' /etc/mongod.conf >> $logfile 2>&1 || { echo "---Failed to configure mongod---" | tee -a $logfile; exit 1; }
-service mongod restart >> $logfile 2>&1 || { echo "---Failed to restart mongod---" | tee -a $logfile; exit 1; }
+#service mongod restart >> $logfile 2>&1 || { echo "---Failed to restart mongod---" | tee -a $logfile; exit 1; }
+systemctl restart mongod >> $logfile 2>&1 || { echo "---Failed to restart mongod---" | tee -a $logfile; exit 1; }
 echo "---finish installing sample application---" | tee -a $logfile 2>&1 		
