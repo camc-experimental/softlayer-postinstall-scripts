@@ -117,11 +117,6 @@ echo "---kubernetes master node installed successfully---" | tee -a $LOGFILE 2>&
 # create a todolist-mongodb deployment
 #################################################################
 
-echo "---obtain mongodb user password from user metadata---" | tee -a $LOGFILE 2>&1
-mkdir userdata
-mount /dev/xvdh1 userdata 
-DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["mongodb-user-password"];')
-
 echo "---create a replication controller for todolist-mongodb---" | tee -a $LOGFILE 2>&1
 cat << 'EOF' > todolist-mongodb-deployment.yaml
 apiVersion: extensions/v1beta1
@@ -152,11 +147,17 @@ EOF
 
 kubectl create -f todolist-mongodb-deployment.yaml | tee -a $LOGFILE 2>&1
 
+echo "---obtain mongodb user password from user metadata---" | tee -a $LOGFILE 2>&1
+mkdir userdata
+mount /dev/xvdh1 userdata | tee -a $LOGFILE 2>&1
+DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["mongodb-user-password"];')
+
 echo "---create an user in mongodb---" | tee -a $LOGFILE 2>&1
 sleep 10
 Todolist-MongoDB-Deployment-Pod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
-kubectl exec -it $Todolist-MongoDB-Deployment-Pod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"$DBUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js'
-kubectl exec -it $Todolist-MongoDB-Deployment-Pod -- mongo localhost:27017/admin mongouser.js
+echo "Deal with $Todolist-MongoDB-Deployment-Pod" | tee -a $LOGFILE 2>&1
+kubectl exec -it $Todolist-MongoDB-Deployment-Pod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"$DBUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' | tee -a $LOGFILE 2>&1
+kubectl exec -it $Todolist-MongoDB-Deployment-Pod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
 
 #################################################################
 # define a service for the todolist-mongodb deployment
