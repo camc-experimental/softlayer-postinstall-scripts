@@ -14,6 +14,8 @@ LOGFILE="/var/log/install_kubernetes_master.log"
 echo "---mount metadata---" | tee -a $LOGFILE 2>&1
 mkdir userdata
 mount /dev/xvdh1 userdata | tee -a $LOGFILE 2>&1
+DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["mongodb-user-password"];')
+
 
 echo "---start hostname, ip address setup---" | tee -a $LOGFILE 2>&1
 
@@ -151,15 +153,11 @@ EOF
 
 kubectl create -f todolist-mongodb-deployment.yaml | tee -a $LOGFILE 2>&1
 
-echo "---obtain mongodb user password from user metadata---" | tee -a $LOGFILE 2>&1
-
-DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["mongodb-user-password"];')
-
 echo "---create an user in mongodb---" | tee -a $LOGFILE 2>&1
 sleep 10
 MongoPod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
 echo "Deal with $MongoPod" | tee -a $LOGFILE 2>&1
-kubectl exec -it $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"$DBUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' | tee -a $LOGFILE 2>&1
+kubectl exec -it $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' | tee -a $LOGFILE 2>&1
 kubectl exec -it $MongoPod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
 
 #################################################################
