@@ -152,6 +152,12 @@ EOF
 
 kubectl create -f todolist-mongodb-deployment.yaml | tee -a $LOGFILE 2>&1
 
+echo "---create an user in mongodb---" | tee -a $LOGFILE 2>&1
+sleep 10
+Todolist-MongoDB-Deployment-Pod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
+kubectl exec -it $Todolist-MongoDB-Deployment-Pod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"$DBUserPwd\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js'
+kubectl exec -it $Todolist-MongoDB-Deployment-Pod -- mongo localhost:27017/admin mongouser.js
+
 #################################################################
 # define a service for the todolist-mongodb deployment
 #################################################################
