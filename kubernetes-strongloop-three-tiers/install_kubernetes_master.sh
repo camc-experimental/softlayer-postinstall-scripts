@@ -140,12 +140,6 @@ spec:
         image: centos:latest
         command: ["/bin/bash"]
         args: ["-c","curl -k -o /root/install_mongodb_in_centos_7.sh  https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_mongodb_in_centos_7.sh" "bash /root/install_mongodb_in_centos_7.sh $DBUserPwd"]
-        securityContext:
-          capabilities:
-            add:
-            - SYS_ADMIN
-          privileged: true
-          fsGroup: true
         ports:
         - containerPort: 27017
 EOF
