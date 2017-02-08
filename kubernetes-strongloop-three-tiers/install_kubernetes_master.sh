@@ -137,7 +137,8 @@ spec:
     spec:
       containers:
       - name: todolist-mongodb
-        image: centos:latest
+        image: mongo:3.4.0
+#        image: centos:latest
 #        command: ["/bin/bash", "-c","curl -k -o /root/install_mongodb_in_centos_7.sh  https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_mongodb_in_centos_7.sh; bash /root/install_mongodb_in_centos_7.sh $DBUserPwd"]
 #        securityContext:
 #         capabilities:
