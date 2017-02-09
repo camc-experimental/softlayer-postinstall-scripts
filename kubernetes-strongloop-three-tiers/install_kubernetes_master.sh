@@ -2,7 +2,6 @@
 #################################################################
 # Script to install Kubernetes Single Master Node
 #
-#         Copyright IBM Corp. 2017, 2017
 #################################################################
 
 set -o errexit
@@ -186,6 +185,12 @@ kubectl create -f todolist-mongodb-service.yaml | tee -a $LOGFILE 2>&1
 # create a todolist-strongloop deployment
 #################################################################
 
+mkdir userdata
+mount /dev/xvdh1 userdata 
+MongoDB_Server=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["masterIP"];')
+DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["mongodb-user-password"];')
+
+
 echo "---create a replication controller for todolist-strongloop---" | tee -a $LOGFILE 2>&1
 cat << 'EOF' > todolist-strongloop-deployment.yaml
 apiVersion: extensions/v1beta1
@@ -201,11 +206,13 @@ spec:
     spec:
       containers:
       - name: todolist-strongloop
-        image: strongloop/node:latest
-#        image: centos:latest
+#        image: strongloop/node:latest
+        image: centos:latest
 #        command: ["sleep infinity"]
 #        command: ["/bin/bash"]
 #		args: ["--login"]
+        command: ["/bin/bash"]
+        args: ["-c", "curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_nodejs_in_centos_7.sh; bash install_strongloop_nodejs_in_centos_7.sh $MongoDB_Server $DBUserPwd"]
         ports:
         - containerPort: 3000
 EOF
