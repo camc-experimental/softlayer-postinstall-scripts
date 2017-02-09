@@ -5,17 +5,11 @@
 #         Copyright IBM Corp. 2017, 2017
 #################################################################
 
-#set -o errexit
-#set -o nounset
-#set -o pipefail
+set -o errexit
+set -o nounset
+set -o pipefail
 
 LOGFILE="/var/log/install_kubernetes_master.log"
-
-#echo "---mount metadata---" | tee -a $LOGFILE 2>&1
-#mkdir userdata
-#mount /dev/xvdh1 userdata | tee -a $LOGFILE 2>&1
-#DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["mongodb-user-password"];')
-
 
 echo "---start hostname, ip address setup---" | tee -a $LOGFILE 2>&1
 
@@ -153,12 +147,31 @@ EOF
 
 kubectl create -f todolist-mongodb-deployment.yaml | tee -a $LOGFILE 2>&1
 
-#echo "---create an user in mongodb---" | tee -a $LOGFILE 2>&1
-#sleep 10
-#MongoPod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
-#echo "Deal with $MongoPod" | tee -a $LOGFILE 2>&1
-#kubectl exec -i $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' >> $LOGFILE 2>&1 || { echo "---Failed to connect to Pod---" | tee -a $LOGFILE; }
-#kubectl exec -i $MongoPod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
+echo "---retrieve mongodb user password from metadata---" | tee -a $LOGFILE 2>&1
+mkdir userdata
+mount /dev/xvdh1 userdata | tee -a $LOGFILE 2>&1
+DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["mongodb-user-password"];')
+
+echo "---create an user in mongodb---" | tee -a $LOGFILE 2>&1
+MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}')
+
+StatusCheckMaxCount=120
+StatusCheckCount=0
+while [ "$MongoContainerStatus" != "Running" ]; do
+	sleep 10
+	echo "---Check Count: $StatusCheckCount---" | tee -a $LOGFILE 2>&1 
+	let StatusCheckCount=StatusCheckCount+1	
+	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
+		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
+		exit 1
+	fi
+	MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}') 
+done
+
+MongoPod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
+echo "Deal with $MongoPod" | tee -a $LOGFILE 2>&1
+kubectl exec -i $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' >> $LOGFILE 2>&1 || { echo "---Failed to connect to Pod---" | tee -a $LOGFILE; }
+kubectl exec -i $MongoPod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
 
 #################################################################
 # define a service for the todolist-mongodb deployment
@@ -184,5 +197,5 @@ kubectl create -f todolist-mongodb-service.yaml | tee -a $LOGFILE 2>&1
 #################################################################
 # reboot
 #################################################################
-#echo "---reboot required to enable networking model---" | tee -a $LOGFILE 2>&1
-#reboot
+echo "---reboot required to enable networking model---" | tee -a $LOGFILE 2>&1
+reboot
