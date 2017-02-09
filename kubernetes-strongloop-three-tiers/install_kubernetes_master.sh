@@ -184,5 +184,5 @@ kubectl create -f todolist-mongodb-service.yaml | tee -a $LOGFILE 2>&1
 #################################################################
 # reboot
 #################################################################
-echo "---reboot required to enable networking model---" | tee -a $LOGFILE 2>&1
-reboot
+#echo "---reboot required to enable networking model---" | tee -a $LOGFILE 2>&1
+#reboot
