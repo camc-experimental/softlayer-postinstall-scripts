@@ -201,10 +201,11 @@ spec:
     spec:
       containers:
       - name: todolist-strongloop
-        image: centos:latest
+        image: strongloop/node:latest
+#        image: centos:latest
 #        command: ["sleep infinity"]
-        command: ["/bin/bash"]
-		args: ["--login"]
+#        command: ["/bin/bash"]
+#		args: ["--login"]
         ports:
         - containerPort: 3000
 EOF
