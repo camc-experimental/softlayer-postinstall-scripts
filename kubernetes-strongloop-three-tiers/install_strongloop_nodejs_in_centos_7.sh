@@ -36,18 +36,12 @@ echo "---start installing sample application---" | tee -a $logfile 2>&1
 
 MongoDB_Server=$1
 DBUserPwd=$2	
-		
-#download and untar application
-yum install curl -y >> $logfile 2>&1 || { echo "---Failed to install curl---" | tee -a $logfile; exit 1; }
-curl -k -O https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/master/strongloop-three-tiers/samples/three-tier-strongloop-sample-application.tar.gz >> $logfile 2>&1 || { echo "---Failed to download application tarball---" | tee -a $logfile; exit 1; } 
-tar -xzvf three-tier-strongloop-sample-application.tar.gz >> $logfile 2>&1 || { echo "---Failed to untar the application---" | tee -a $logfile; exit 1; }		
 
-#start application
-cd strongloop-sample
-sed -i -e "s/mongodb-server/$MongoDB_Server/g" server/datasources.json >> $logfile 2>&1 || { echo "---Failed to configure datasource with mongodb server address---" | tee -a $logfile; exit 1; }
-sed -i -e "s/sampleUserPwd/$DBUserPwd/g" server/datasources.json >> $logfile 2>&1 || { echo "---Failed to configure datasource with mongo user password---" | tee -a $logfile; exit 1; } 
-slc run >> $logfile 2>&1 || { echo "---Failed to start the application---" | tee -a $logfile; exit 1; }
-		
+echo "---MongoDB_Server: $MongoDB_Server---" | tee -a $logfile 2>&1 
+echo "---DBUserPwd: $DBUserPwd---" | tee -a $logfile 2>&1 
+sleep infinity
+
+	
 echo "---finish installing sample application---" | tee -a $logfile 2>&1 		
 	
 
