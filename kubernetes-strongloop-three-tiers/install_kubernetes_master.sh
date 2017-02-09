@@ -147,6 +147,7 @@ MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | aw
 StatusCheckMaxCount=120
 StatusCheckCount=0
 while [ "$MongoContainerStatus" != "Running" ]; do
+	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
 	sleep 10
 	let StatusCheckCount=StatusCheckCount+1	
 	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
@@ -201,8 +202,9 @@ spec:
       containers:
       - name: todolist-strongloop
         image: centos:latest
- #       command: ["/bin/bash"]
-		args: ["sleep infinity"]
+        command: ["sleep infinity"]
+#       command: ["/bin/bash"]
+#		args: ["sleep infinity"]
         ports:
         - containerPort: 3000
 EOF
