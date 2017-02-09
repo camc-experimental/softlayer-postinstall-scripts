@@ -157,8 +157,8 @@ while [ "$MongoContainerStatus" != "Running" ]; do
 done
 
 MongoPod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
-kubectl exec -i $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' >> $LOGFILE 2>&1 || { echo "---Failed to connect to Pod---" | tee -a $LOGFILE; }
-kubectl exec -i $MongoPod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
+kubectl exec $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' >> $LOGFILE 2>&1 || { echo "---Failed to connect to Pod---" | tee -a $LOGFILE; }
+kubectl exec $MongoPod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
 
 #################################################################
 # define a service for the todolist-mongodb deployment
@@ -202,7 +202,7 @@ spec:
       - name: todolist-strongloop
         image: centos:latest
         command: ["/bin/bash"]
-		args: ["-c", "while true; sleep 10; done"]
+		args: ["-c", "while true; do sleep 10;done"]
         ports:
         - containerPort: 3000
 EOF
