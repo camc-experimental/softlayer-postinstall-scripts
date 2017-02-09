@@ -182,6 +182,53 @@ kubectl create -f todolist-mongodb-service.yaml | tee -a $LOGFILE 2>&1
 
 
 #################################################################
+# create a todolist-strongloop deployment
+#################################################################
+
+echo "---create a replication controller for todolist-strongloop---" | tee -a $LOGFILE 2>&1
+cat << 'EOF' > todolist-strongloop-deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: todolist-strongloop-deployment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: todolist-strongloop
+    spec:
+      containers:
+      - name: todolist-strongloop
+        image: centos:latest
+        ports:
+        - containerPort: 3000
+EOF
+
+kubectl create -f todolist-strongloop-deployment.yaml | tee -a $LOGFILE 2>&1
+
+#################################################################
+# define a service for the todolist-strongloop deployment
+#################################################################
+echo "---define a service for the todolist-strongloop---" | tee -a $LOGFILE 2>&1
+cat << EOF > todolist-strongloop-service.yaml 
+apiVersion: v1
+kind: Service
+metadata:
+  name: todolist-strongloop-service
+spec:
+  externalIPs:
+    - $MYIP # master or minion external IP
+  ports:
+    - port: 3000
+  selector:
+    app: todolist-strongloop
+EOF
+
+kubectl create -f todolist-strongloop-service.yaml | tee -a $LOGFILE 2>&1
+
+
+#################################################################
 # reboot
 #################################################################
 echo "---reboot required to enable networking model---" | tee -a $LOGFILE 2>&1
