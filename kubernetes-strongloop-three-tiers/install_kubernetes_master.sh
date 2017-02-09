@@ -133,16 +133,6 @@ spec:
       containers:
       - name: todolist-mongodb
         image: mongo:3.4.0
-#        image: centos:latest
-#        command: ["/bin/bash", "-c","curl -k -o /root/install_mongodb_in_centos_7.sh  https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_mongodb_in_centos_7.sh; bash /root/install_mongodb_in_centos_7.sh $DBUserPwd"]
-#        securityContext:
-#         capabilities:
-#            add:
-#              - SYS_ADMIN
-#          privileged: true
-#          fsGroup: true
-#        ports:
-#        - containerPort: 27017
 EOF
 
 kubectl create -f todolist-mongodb-deployment.yaml | tee -a $LOGFILE 2>&1
@@ -154,12 +144,10 @@ DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load
 
 echo "---create an user in mongodb---" | tee -a $LOGFILE 2>&1
 MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}')
-
 StatusCheckMaxCount=120
 StatusCheckCount=0
 while [ "$MongoContainerStatus" != "Running" ]; do
 	sleep 10
-	echo "---Check Count: $StatusCheckCount---" | tee -a $LOGFILE 2>&1 
 	let StatusCheckCount=StatusCheckCount+1	
 	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
 		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
@@ -169,7 +157,6 @@ while [ "$MongoContainerStatus" != "Running" ]; do
 done
 
 MongoPod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
-echo "Deal with $MongoPod" | tee -a $LOGFILE 2>&1
 kubectl exec -i $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' >> $LOGFILE 2>&1 || { echo "---Failed to connect to Pod---" | tee -a $LOGFILE; }
 kubectl exec -i $MongoPod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
 
