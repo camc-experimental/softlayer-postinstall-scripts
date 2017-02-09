@@ -201,6 +201,8 @@ spec:
       containers:
       - name: todolist-strongloop
         image: centos:latest
+        command: ["/bin/bash"]
+		args: ["-c", "while true; sleep 10; done"]
         ports:
         - containerPort: 3000
 EOF
