@@ -45,4 +45,3 @@ sed -i -e "s/sampleUserPwd/$DBUserPwd/g" $WORKDIR/strongloop-sample/server/datas
 slc run $WORKDIR/strongloop-sample & >> $logfile 2>&1 || { echo "---Failed to start the application---" | tee -a $logfile; exit 1; }
 
 echo "---finish installing strongloop sample application---" | tee -a $logfile 2>&1 
-exit 0
