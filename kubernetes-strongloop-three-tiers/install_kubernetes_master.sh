@@ -231,8 +231,8 @@ InstallStrongloopScript=install_strongloop_nodejs_in_centos_7.sh
 
 StrongloopPod=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $1}')
 kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop---" | tee -a $LOGFILE; }
-kubectl exec $StrongloopPod -- bash $InstallStrongloopScript $MYIP $DBUserPwd >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop and its sample---" | tee -a $LOGFILE; }
-kubectl exec $StrongloopPod -- bash -c "slc run /root/strongloop-sample &" & >> $LOGFILE 2>&1 || { echo "---Failed to start sample---" | tee -a $LOGFILE; }
+kubectl exec $StrongloopPod -- bash $InstallStrongloopScript $MYIP $DBUserPwd & >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop and its sample---" | tee -a $LOGFILE; }
+#kubectl exec $StrongloopPod -- bash -c "slc run /root/strongloop-sample &" & >> $LOGFILE 2>&1 || { echo "---Failed to start sample---" | tee -a $LOGFILE; }
 
 #################################################################
 # define a service for the todolist-strongloop deployment
