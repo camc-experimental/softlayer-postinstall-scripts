@@ -153,7 +153,7 @@ MongoPodStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{pr
 StatusCheckMaxCount=120
 StatusCheckCount=0
 while [ "$MongoPodStatus" != "Running" ]; do
-	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
+	echo "---Check $StatusCheckCount: $MongoPodStatus---" | tee -a $LOGFILE 2>&1
 	sleep 10
 	let StatusCheckCount=StatusCheckCount+1	
 	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
@@ -231,19 +231,19 @@ Index=0
 while [ $Index -lt $Counter ]; do
 	StrongloopPod=${Array_StrongloopPod[$Index]}
 	
-	StrongloopContainerStatus=$(kubectl get pod "$StrongloopPod" | awk '{print $3}')
+	StrongloopPodStatus=$(kubectl get pod "$StrongloopPod" | awk '{print $3}')
 	StatusCheckMaxCount=120
 	StatusCheckCount=0
 	
-	while [ "$StrongloopContainerStatus" != "Running" ]; do
-		echo "---Check $StatusCheckCount: $StrongloopPod: $StrongloopContainerStatus---" | tee -a $LOGFILE 2>&1
+	while [ "$StrongloopPodStatus" != "Running" ]; do
+		echo "---Check $StatusCheckCount: $StrongloopPod: $StrongloopPodStatus---" | tee -a $LOGFILE 2>&1
 		sleep 10
 		let StatusCheckCount=StatusCheckCount+1	
 		if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
 			echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
 			exit 1
 		fi
-		StrongloopContainerStatus=$(kubectl get pod "$StrongloopPod" | awk '{print $3}')
+		StrongloopPodStatus=$(kubectl get pod "$StrongloopPod" | awk '{print $3}')
 	done
 	
 	kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop---" | tee -a $LOGFILE; }
