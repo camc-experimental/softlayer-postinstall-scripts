@@ -202,7 +202,8 @@ spec:
       - name: todolist-strongloop
         image: centos:latest
         command: ["/bin/bash"]
-        args: ["-c", "curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_nodejs_in_centos_7.sh; bash install_strongloop_nodejs_in_centos_7.sh"]
+#       args: ["-c", "curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_nodejs_in_centos_7.sh; bash install_strongloop_nodejs_in_centos_7.sh"]
+        args: ["-c", "sleep infinity"]
         ports:
         - containerPort: 3000
 EOF
@@ -211,23 +212,23 @@ kubectl create -f todolist-strongloop-deployment.yaml | tee -a $LOGFILE 2>&1
 
 
 echo "--deploy strongloop sample---" | tee -a $LOGFILE 2>&1
-StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}')
-StatusCheckMaxCount=120
-StatusCheckCount=0
-while [ "$StrongloopContainerStatus" != "Running" ]; do
-	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
-	sleep 10
-	let StatusCheckCount=StatusCheckCount+1	
-	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
-		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
-		exit 1
-	fi
-	StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}') 
-done
+#StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}')
+#StatusCheckMaxCount=120
+#StatusCheckCount=0
+#while [ "$StrongloopContainerStatus" != "Running" ]; do
+#	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
+#	sleep 10
+#	let StatusCheckCount=StatusCheckCount+1	
+#	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
+#		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
+#		exit 1
+#	fi
+#	StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}') 
+#done
 
-StrongloopPod=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $1}')
-kubectl exec $StrongloopPod -- curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_sample.sh >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop sample---" | tee -a $LOGFILE; }
-kubectl exec $StrongloopPod -- bash install_strongloop_sample.sh $MYIP $DBUserPwd >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop sample---" | tee -a $LOGFILE; }
+#StrongloopPod=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $1}')
+#kubectl exec $StrongloopPod -- curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_sample.sh >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop sample---" | tee -a $LOGFILE; }
+#kubectl exec $StrongloopPod -- bash install_strongloop_sample.sh $MYIP $DBUserPwd >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop sample---" | tee -a $LOGFILE; }
 
 
 #################################################################
