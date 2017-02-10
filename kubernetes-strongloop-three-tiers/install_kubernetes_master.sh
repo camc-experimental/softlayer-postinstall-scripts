@@ -149,10 +149,10 @@ mount /dev/xvdh1 userdata | tee -a $LOGFILE 2>&1
 DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["mongodb-user-password"];')
 
 echo "---create an user in mongodb---" | tee -a $LOGFILE 2>&1
-MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}')
+MongoPodStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}')
 StatusCheckMaxCount=120
 StatusCheckCount=0
-while [ "$MongoContainerStatus" != "Running" ]; do
+while [ "$MongoPodStatus" != "Running" ]; do
 	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
 	sleep 10
 	let StatusCheckCount=StatusCheckCount+1	
@@ -160,7 +160,7 @@ while [ "$MongoContainerStatus" != "Running" ]; do
 		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
 		exit 1
 	fi
-	MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}') 
+	MongoPodStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}') 
 done
 
 MongoPod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
@@ -209,7 +209,6 @@ spec:
       - name: todolist-strongloop
         image: centos:latest
         command: ["/bin/bash"]
-#       args: ["-c", "curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_nodejs_in_centos_7.sh; bash install_strongloop_nodejs_in_centos_7.sh"]
         args: ["-c", "sleep infinity"]
         ports:
         - containerPort: 3000
@@ -219,37 +218,59 @@ kubectl create -f todolist-strongloop-deployment.yaml | tee -a $LOGFILE 2>&1
 
 
 echo "--deploy strongloop and its sample---" | tee -a $LOGFILE 2>&1
-StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}')
-StatusCheckMaxCount=120
-StatusCheckCount=0
-while [ "$StrongloopContainerStatus" != "Running" ]; do
-	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
-	sleep 10
-	let StatusCheckCount=StatusCheckCount+1	
-	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
-		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
-		exit 1
-	fi
-	StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}') 
-done
 
 RepoDir=https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers
 InstallStrongloopScript=install_strongloop_nodejs_in_centos_7.sh
-InstallStrongloopSampleScript=install_strongloop_sample.sh
 
-StrongloopPod=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $1}')
-kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop---" | tee -a $LOGFILE; }
-#kubectl exec $StrongloopPod -- bash $InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop---" | tee -a $LOGFILE; }
-kubectl exec $StrongloopPod -- bash $InstallStrongloopScript $MYIP $DBUserPwd & >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop---" | tee -a $LOGFILE; }
+StrongloopPods=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $1}' | xargs | sed -e 's/ /,/g')
+
+IFS=',' read -a Array_StrongloopPod <<< "$StrongloopPods"
+Counter=${#Array_StrongloopPod[@]}
+
+Index=0
+while [ $Index -lt $Counter ]; do
+	StrongloopPod=${Array_StrongloopPod[$Index]}
+	
+	StrongloopContainerStatus=$(kubectl get pod "$StrongloopPod" | awk '{print $3}')
+	StatusCheckMaxCount=120
+	StatusCheckCount=0
+	
+	while [ "$StrongloopContainerStatus" != "Running" ]; do
+		echo "---Check $StatusCheckCount: $Strongloop_Pod: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
+		sleep 10
+		let StatusCheckCount=StatusCheckCount+1	
+		if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
+			echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
+			exit 1
+		fi
+		StrongloopContainerStatus=$(kubectl get pod "$StrongloopPod" | awk '{print $3}')
+	done
+	
+	kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop---" | tee -a $LOGFILE; }
+	kubectl exec $StrongloopPod -- bash $InstallStrongloopScript $MYIP $DBUserPwd & >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop---" | tee -a $LOGFILE; }
+			
+	let Index=Index+1		
+done		
 
 
+#StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}')
+#StatusCheckMaxCount=120
+#StatusCheckCount=0
+#while [ "$StrongloopContainerStatus" != "Running" ]; do
+#	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
+#	sleep 10
+#	let StatusCheckCount=StatusCheckCount+1	
+#	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
+#		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
+#		exit 1
+#	fi
+#	StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}') 
+#done
 
-#kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopSampleScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop sample---" | tee -a $LOGFILE; }
-#kubectl exec $StrongloopPod -- bash $InstallStrongloopSampleScript $MYIP $DBUserPwd & >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop sample---" | tee -a $LOGFILE; }
+#StrongloopPod=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $1}')
+#kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop---" | tee -a $LOGFILE; }
+#kubectl exec $StrongloopPod -- bash $InstallStrongloopScript $MYIP $DBUserPwd & >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop---" | tee -a $LOGFILE; }
 
-#kubectl exec $StrongloopPod -- slc run /root/strongloop-sample & >> $LOGFILE 2>&1 || { echo "---Failed to start sample---" | tee -a $LOGFILE; }
-
-#sleep 20
 
 #################################################################
 # define a service for the todolist-strongloop deployment
