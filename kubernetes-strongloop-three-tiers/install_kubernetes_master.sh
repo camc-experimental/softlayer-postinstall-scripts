@@ -241,7 +241,7 @@ kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopScript >> $LO
 kubectl exec $StrongloopPod -- bash $InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop---" | tee -a $LOGFILE; }
 
 kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopSampleScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop sample---" | tee -a $LOGFILE; }
-kubectl exec $StrongloopPod -- bash -c "bash $InstallStrongloopSampleScript $MYIP $DBUserPwd" & >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop sample---" | tee -a $LOGFILE; }
+kubectl exec $StrongloopPod -- bash $InstallStrongloopSampleScript $MYIP $DBUserPwd & >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop sample---" | tee -a $LOGFILE; }
 
 #kubectl exec $StrongloopPod -- slc run /root/strongloop-sample & >> $LOGFILE 2>&1 || { echo "---Failed to start sample---" | tee -a $LOGFILE; }
 
