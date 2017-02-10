@@ -142,23 +142,23 @@ mount /dev/xvdh1 userdata | tee -a $LOGFILE 2>&1
 DBUserPwd=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["mongodb-user-password"];')
 
 echo "---create an user in mongodb---" | tee -a $LOGFILE 2>&1
-#MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}')
-#StatusCheckMaxCount=120
-#StatusCheckCount=0
-#while [ "$MongoContainerStatus" != "Running" ]; do
-#	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
-#	sleep 10
-#	let StatusCheckCount=StatusCheckCount+1	
-#	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
-#		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
-#		exit 1
-#	fi
-#	MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}') 
-#done
+MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}')
+StatusCheckMaxCount=120
+StatusCheckCount=0
+while [ "$MongoContainerStatus" != "Running" ]; do
+	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
+	sleep 10
+	let StatusCheckCount=StatusCheckCount+1	
+	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
+		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
+		exit 1
+	fi
+	MongoContainerStatus=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $3}') 
+done
 
-#MongoPod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
-#kubectl exec $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' >> $LOGFILE 2>&1 || { echo "---Failed to connect to Pod---" | tee -a $LOGFILE; }
-#kubectl exec $MongoPod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
+MongoPod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
+kubectl exec $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' >> $LOGFILE 2>&1 || { echo "---Failed to connect to Pod---" | tee -a $LOGFILE; }
+kubectl exec $MongoPod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
 
 #################################################################
 # define a service for the todolist-mongodb deployment
@@ -171,7 +171,7 @@ metadata:
   name: todolist-mongodb-service
 spec:
   externalIPs:
-    - $MYIP # master or minion external IP
+    - $MYIP
   ports:
     - port: 27017
   selector:
@@ -184,8 +184,6 @@ kubectl create -f todolist-mongodb-service.yaml | tee -a $LOGFILE 2>&1
 #################################################################
 # create a todolist-strongloop deployment
 #################################################################
-
-#MongoDB_Server=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["masterIP"];')
 
 echo "---create a replication controller for todolist-strongloop---" | tee -a $LOGFILE 2>&1
 cat << 'EOF' > todolist-strongloop-deployment.yaml
@@ -202,18 +200,9 @@ spec:
     spec:
       containers:
       - name: todolist-strongloop
-#        image: strongloop/node:latest
         image: centos:latest
-#        command: ["sleep infinity"]
-#        command: ["/bin/bash"]
-#		args: ["--login"]
-        env:
-		- name: MongoDBServer
-  		  value: $MYIP
-  		- name: MongoDBUserPwd
-  		  value: $DBUserPwd 
         command: ["/bin/bash"]
-        args: ["-c", "curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_nodejs_in_centos_7.sh; bash install_strongloop_nodejs_in_centos_7.sh $(MongoDBServer) $(DBUserPwd)"]
+        args: ["-c", "curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_nodejs_in_centos_7.sh; bash install_strongloop_nodejs_in_centos_7.sh"]
         ports:
         - containerPort: 3000
 EOF
@@ -231,7 +220,7 @@ metadata:
   name: todolist-strongloop-service
 spec:
   externalIPs:
-    - $MYIP # master or minion external IP
+    - $MYIP
   ports:
     - port: 3000
   selector:
