@@ -199,7 +199,7 @@ kind: Deployment
 metadata:
   name: todolist-strongloop-deployment
 spec:
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
