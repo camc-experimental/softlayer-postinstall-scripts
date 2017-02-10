@@ -207,8 +207,13 @@ spec:
 #        command: ["sleep infinity"]
 #        command: ["/bin/bash"]
 #		args: ["--login"]
+        env:
+		- name: MongoDBServer
+  		  value: $MYIP
+  		- name: MongoDBUserPwd
+  		  value: $DBUserPwd 
         command: ["/bin/bash"]
-        args: ["-c", "curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_nodejs_in_centos_7.sh; bash install_strongloop_nodejs_in_centos_7.sh '"$MYIP"' '"$DBUserPwd"'"]
+        args: ["-c", "curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_nodejs_in_centos_7.sh; bash install_strongloop_nodejs_in_centos_7.sh $(MongoDBServer) $(DBUserPwd)"]
         ports:
         - containerPort: 3000
 EOF
