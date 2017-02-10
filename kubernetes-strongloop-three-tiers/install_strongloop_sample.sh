@@ -26,4 +26,4 @@ sed -i -e "s/sampleUserPwd/$DBUserPwd/g" $WORKDIR/strongloop-sample/server/datas
 slc run $WORKDIR/strongloop-sample &
 
 echo "---finish installing strongloop sample application---" | tee -a $logfile 2>&1 
-
+exit 0
