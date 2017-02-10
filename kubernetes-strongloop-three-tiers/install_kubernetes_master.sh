@@ -270,4 +270,5 @@ kubectl create -f todolist-strongloop-service.yaml | tee -a $LOGFILE 2>&1
 # reboot
 #################################################################
 echo "---reboot required to enable networking model---" | tee -a $LOGFILE 2>&1
+sleep 20
 reboot
