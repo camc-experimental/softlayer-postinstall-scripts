@@ -10,6 +10,12 @@ set -o pipefail
 
 LOGFILE="/var/log/install_kubernetes_master.log"
 
+if [ -f /root/post_script_executed ]; then
+	echo "---postInstallScript is already executed---" | tee -a $LOGFILE 2>&1
+	exit 0
+fi
+touch /root/post_script_executed
+
 echo "---start hostname, ip address setup---" | tee -a $LOGFILE 2>&1
 
 yum install curl -y
