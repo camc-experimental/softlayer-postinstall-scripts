@@ -157,8 +157,8 @@ while [ "$MongoContainerStatus" != "Running" ]; do
 done
 
 MongoPod=$(kubectl get pod | grep "todolist-mongodb-deployment" | awk '{print $1}')
-kubectl exec $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' >> $LOGFILE 2>&1 || { echo "---Failed to connect to Pod---" | tee -a $LOGFILE; }
-kubectl exec $MongoPod -- mongo localhost:27017/admin mongouser.js | tee -a $LOGFILE 2>&1
+kubectl exec $MongoPod -- bash -c 'echo "db.createUser({user:\"sampleUser\", pwd: \"'$DBUserPwd'\", roles: [{role: \"userAdminAnyDatabase\", db: \"admin\"}]})" > mongouser.js' >> $LOGFILE 2>&1 || { echo "---Failed to create file in the container---" | tee -a $LOGFILE; }
+kubectl exec $MongoPod -- mongo localhost:27017/admin mongouser.js >> $LOGFILE 2>&1 || { echo "---Failed to add user---" | tee -a $LOGFILE; }
 
 #################################################################
 # define a service for the todolist-mongodb deployment
@@ -192,7 +192,7 @@ kind: Deployment
 metadata:
   name: todolist-strongloop-deployment
 spec:
-  replicas: 2
+  replicas: 1
   template:
     metadata:
       labels:
@@ -208,6 +208,27 @@ spec:
 EOF
 
 kubectl create -f todolist-strongloop-deployment.yaml | tee -a $LOGFILE 2>&1
+
+
+echo "--deploy strongloop sample---" | tee -a $LOGFILE 2>&1
+StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}')
+StatusCheckMaxCount=120
+StatusCheckCount=0
+while [ "$StrongloopContainerStatus" != "Running" ]; do
+	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
+	sleep 10
+	let StatusCheckCount=StatusCheckCount+1	
+	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
+		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
+		exit 1
+	fi
+	StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}') 
+done
+
+StrongloopPod=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $1}')
+kubectl exec $StrongloopPod -- curl -kO https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers/install_strongloop_sample.sh >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop sample---" | tee -a $LOGFILE; }
+kubectl exec $StrongloopPod -- bash install_strongloop_sample.sh $MYIP $DBUserPwd >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop sample---" | tee -a $LOGFILE; }
+
 
 #################################################################
 # define a service for the todolist-strongloop deployment
