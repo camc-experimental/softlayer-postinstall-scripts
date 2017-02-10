@@ -10,6 +10,7 @@ set -o pipefail
 
 LOGFILE="/var/log/install_kubernetes_master.log"
 
+#Avoid duplicately executing this script
 if [ -f /root/post_script_executed ]; then
 	echo "---postInstallScript is already executed---" | tee -a $LOGFILE 2>&1
 	exit 0
@@ -245,6 +246,8 @@ kubectl exec $StrongloopPod -- bash $InstallStrongloopSampleScript $MYIP $DBUser
 
 #kubectl exec $StrongloopPod -- slc run /root/strongloop-sample & >> $LOGFILE 2>&1 || { echo "---Failed to start sample---" | tee -a $LOGFILE; }
 
+sleep 10
+
 #################################################################
 # define a service for the todolist-strongloop deployment
 #################################################################
@@ -270,5 +273,4 @@ kubectl create -f todolist-strongloop-service.yaml | tee -a $LOGFILE 2>&1
 # reboot
 #################################################################
 echo "---reboot required to enable networking model---" | tee -a $LOGFILE 2>&1
-sleep 20
 reboot
