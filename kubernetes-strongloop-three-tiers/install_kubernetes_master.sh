@@ -236,7 +236,7 @@ while [ $Index -lt $Counter ]; do
 	StatusCheckCount=0
 	
 	while [ "$StrongloopContainerStatus" != "Running" ]; do
-		echo "---Check $StatusCheckCount: $Strongloop_Pod: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
+		echo "---Check $StatusCheckCount: $StrongloopPod: $StrongloopContainerStatus---" | tee -a $LOGFILE 2>&1
 		sleep 10
 		let StatusCheckCount=StatusCheckCount+1	
 		if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
