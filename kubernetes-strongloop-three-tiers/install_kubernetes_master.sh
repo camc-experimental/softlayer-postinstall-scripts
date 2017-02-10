@@ -246,7 +246,7 @@ kubectl exec $StrongloopPod -- bash $InstallStrongloopSampleScript $MYIP $DBUser
 
 #kubectl exec $StrongloopPod -- slc run /root/strongloop-sample & >> $LOGFILE 2>&1 || { echo "---Failed to start sample---" | tee -a $LOGFILE; }
 
-sleep 15
+sleep 20
 
 #################################################################
 # define a service for the todolist-strongloop deployment
