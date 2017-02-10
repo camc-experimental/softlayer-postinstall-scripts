@@ -228,11 +228,16 @@ done
 
 RepoDir=https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers
 InstallStrongloopScript=install_strongloop_nodejs_in_centos_7.sh
+InstallStrongloopSampleScript=install_strongloop_sample.sh
 
 StrongloopPod=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $1}')
 kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop---" | tee -a $LOGFILE; }
-kubectl exec $StrongloopPod -- bash $InstallStrongloopScript $MYIP $DBUserPwd >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop and its sample---" | tee -a $LOGFILE; }
-kubectl exec $StrongloopPod -- slc run /root/strongloop-sample & >> $LOGFILE 2>&1 || { echo "---Failed to start sample---" | tee -a $LOGFILE; }
+kubectl exec $StrongloopPod -- bash $InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop---" | tee -a $LOGFILE; }
+
+kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopSampleScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop sample---" | tee -a $LOGFILE; }
+kubectl exec $StrongloopPod -- bash $InstallStrongloopSampleScript $MYIP $DBUserPwd & >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop sample---" | tee -a $LOGFILE; }
+
+#kubectl exec $StrongloopPod -- slc run /root/strongloop-sample & >> $LOGFILE 2>&1 || { echo "---Failed to start sample---" | tee -a $LOGFILE; }
 
 #################################################################
 # define a service for the todolist-strongloop deployment
