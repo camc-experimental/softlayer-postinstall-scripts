@@ -279,8 +279,6 @@ kubectl create -f todolist-strongloop-service.yaml | tee -a $LOGFILE 2>&1
 # create a todolist-angularjs deployment
 #################################################################
 
-InstallAngularjsScript=install_angular_nodejs_in_centos_7.sh
-
 echo "---create a replication controller for todolist-angularjs---" | tee -a $LOGFILE 2>&1
 cat << EOF > todolist-angularjs-deployment.yaml
 apiVersion: extensions/v1beta1
@@ -298,8 +296,7 @@ spec:
       - name: todolist-angularjs
         image: centos:latest
         command: ["/bin/bash"]
-#        args: ["-c", "sleep infinity"]
-        args: ["-c", "curl -kO $RepoDir/$InstallAngularjsScript;bash $InstallAngularjsScript $MYIP"]
+        args: ["-c", "sleep infinity"]
         ports:
         - containerPort: 8090
 EOF
@@ -307,7 +304,6 @@ EOF
 kubectl create -f todolist-angularjs-deployment.yaml | tee -a $LOGFILE 2>&1
 
 
-<<comment
 echo "--deploy angularjs and its sample---" | tee -a $LOGFILE 2>&1
 
 InstallAngularjsScript=install_angular_nodejs_in_centos_7.sh
@@ -341,7 +337,7 @@ while [ $Index -lt $Counter ]; do
 			
 	let Index=Index+1		
 done
-comment		
+	
 
 #################################################################
 # define a service for the todolist-angularjs deployment
