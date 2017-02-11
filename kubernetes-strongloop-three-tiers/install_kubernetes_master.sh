@@ -240,7 +240,7 @@ while [ $Index -lt $Counter ]; do
 		sleep 10
 		let StatusCheckCount=StatusCheckCount+1	
 		if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
-			echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
+			echo "---Cannot connect to the strongloop container---" | tee -a $LOGFILE 2>&1 
 			exit 1
 		fi
 		StrongloopPodStatus=$(kubectl get pod "$StrongloopPod" | grep "todolist-strongloop-deployment"| awk '{print $3}')
@@ -251,26 +251,6 @@ while [ $Index -lt $Counter ]; do
 			
 	let Index=Index+1		
 done		
-
-
-#StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}')
-#StatusCheckMaxCount=120
-#StatusCheckCount=0
-#while [ "$StrongloopContainerStatus" != "Running" ]; do
-#	echo "---Check $StatusCheckCount: $MongoContainerStatus---" | tee -a $LOGFILE 2>&1
-#	sleep 10
-#	let StatusCheckCount=StatusCheckCount+1	
-#	if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
-#		echo "---Cannot connect to the mongodb container---" | tee -a $LOGFILE 2>&1 
-#		exit 1
-#	fi
-#	StrongloopContainerStatus=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $3}') 
-#done
-
-#StrongloopPod=$(kubectl get pod | grep "todolist-strongloop-deployment" | awk '{print $1}')
-#kubectl exec $StrongloopPod -- curl -kO $RepoDir/$InstallStrongloopScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing strongloop---" | tee -a $LOGFILE; }
-#kubectl exec $StrongloopPod -- bash $InstallStrongloopScript $MYIP $DBUserPwd & >> $LOGFILE 2>&1 || { echo "---Failed to install strongloop---" | tee -a $LOGFILE; }
-
 
 #################################################################
 # define a service for the todolist-strongloop deployment
@@ -291,6 +271,91 @@ spec:
 EOF
 
 kubectl create -f todolist-strongloop-service.yaml | tee -a $LOGFILE 2>&1
+
+
+#################################################################
+# create a todolist-angularjs deployment
+#################################################################
+
+echo "---create a replication controller for todolist-angularjs---" | tee -a $LOGFILE 2>&1
+cat << 'EOF' > todolist-angularjs-deployment.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: todolist-angularjs-deployment
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: todolist-angularjs
+    spec:
+      containers:
+      - name: todolist-angularjs
+        image: centos:latest
+        command: ["/bin/bash"]
+        args: ["-c", "sleep infinity"]
+        ports:
+        - containerPort: 8080
+EOF
+
+kubectl create -f todolist-angularjs-deployment.yaml | tee -a $LOGFILE 2>&1
+
+
+echo "--deploy angularjs and its sample---" | tee -a $LOGFILE 2>&1
+
+RepoDir=https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers
+InstallAngularjsScript=install_angular_nodejs_in_centos_7.sh
+
+AngularjsPods=$(kubectl get pod | grep "todolist-angularjs-deployment" | awk '{print $1}' | xargs | sed -e 's/ /,/g')
+
+IFS=',' read -a Array_AngularjsPod <<< "$AngularjsPods"
+Counter=${#Array_AngularjsPod[@]}
+
+Index=0
+while [ $Index -lt $Counter ]; do
+	AngularjsPod=${Array_AngularjsPod[$Index]}
+	
+	AngularjsPodStatus=$(kubectl get pod "$AngularjsPod" | grep "todolist-angularjs-deployment"| awk '{print $3}')
+	StatusCheckMaxCount=120
+	StatusCheckCount=0
+	
+	while [ "$AngularjsPodStatus" != "Running" ]; do
+		echo "---Check $StatusCheckCount: $AngularjsPod: $AngularjsPodStatus---" | tee -a $LOGFILE 2>&1
+		sleep 10
+		let StatusCheckCount=StatusCheckCount+1	
+		if [ $StatusCheckCount -eq $StatusCheckMaxCount ]; then
+			echo "---Cannot connect to the angularjs container---" | tee -a $LOGFILE 2>&1 
+			exit 1
+		fi
+		AngularjsPodStatus=$(kubectl get pod "$AngularjsPod" | grep "todolist-angularjs-deployment"| awk '{print $3}')
+	done
+	
+	kubectl exec $AngularjsPod -- curl -kO $RepoDir/$InstallAngularjsScript >> $LOGFILE 2>&1 || { echo "---Failed to download script of installing angularjs---" | tee -a $LOGFILE; }
+	kubectl exec $AngularjsPod -- bash $InstallAngularjsScript $MYIP & >> $LOGFILE 2>&1 || { echo "---Failed to install angularjs---" | tee -a $LOGFILE; }
+			
+	let Index=Index+1		
+done		
+
+#################################################################
+# define a service for the todolist-angularjs deployment
+#################################################################
+echo "---define a service for the todolist-angularjs---" | tee -a $LOGFILE 2>&1
+cat << EOF > todolist-angularjs-service.yaml 
+apiVersion: v1
+kind: Service
+metadata:
+  name: todolist-angularjs-service
+spec:
+  externalIPs:
+    - $MYIP
+  ports:
+    - port: 8090
+  selector:
+    app: todolist-angularjs
+EOF
+
+kubectl create -f todolist-angularjs-service.yaml | tee -a $LOGFILE 2>&1
 
 
 #################################################################
