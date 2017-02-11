@@ -1,8 +1,6 @@
 #!/bin/bash
 #################################################################
 # Script to update etc/hosts file with chef server ip
-#
-#         Copyright IBM Corp. 2012, 2017
 #################################################################
 
 #set -o errexit
