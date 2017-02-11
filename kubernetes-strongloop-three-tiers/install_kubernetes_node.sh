@@ -10,6 +10,7 @@
 
 LOGFILE="/var/log/install_kubernetes_minion.log"
 
+#Avoid duplicately executing this script
 if [ -f /root/post_script_executed ]; then
 	echo "---postInstallScript is already executed---" | tee -a $LOGFILE 2>&1
 	exit 0
