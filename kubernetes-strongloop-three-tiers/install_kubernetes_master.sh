@@ -296,7 +296,7 @@ spec:
         command: ["/bin/bash"]
         args: ["-c", "sleep infinity"]
         ports:
-        - containerPort: 8080
+        - containerPort: 8090
 EOF
 
 kubectl create -f todolist-angularjs-deployment.yaml | tee -a $LOGFILE 2>&1

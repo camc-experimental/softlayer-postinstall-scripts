@@ -43,6 +43,7 @@ tar -xzvf $WORKDIR/sample-application.tar.gz -C $WORKDIR >> $logfile 2>&1 || { e
 
 #start application
 sed -i -e "s/strongloop-server/$Strongloop_Server/g" $WORKDIR/angular-sample/server/server.js >> $logfile 2>&1 || { echo "---Failed to configure server.js---" | tee -a $logfile; exit 1; } 
+sed -i -e "s/8080/8090/g" $WORKDIR/angular-sample/server/server.js >> $logfile 2>&1 || { echo "---Failed to change listening port in server.js---" | tee -a $logfile; exit 1; } 
 node $WORKDIR/angular-sample/server/server.js & >> $logfile 2>&1 || { echo "---Failed to start the application---" | tee -a $logfile; exit 1; }
 		
 echo "---finish installing angularjs sample application---" | tee -a $logfile 2>&1 		
