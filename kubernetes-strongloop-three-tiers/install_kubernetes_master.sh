@@ -124,7 +124,7 @@ echo "---kubernetes master node installed successfully---" | tee -a $LOGFILE 2>&
 #################################################################
 
 echo "---create a replication controller for todolist-mongodb---" | tee -a $LOGFILE 2>&1
-cat << 'EOF' > todolist-mongodb-deployment.yaml
+cat << EOF > todolist-mongodb-deployment.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -195,7 +195,7 @@ kubectl create -f todolist-mongodb-service.yaml | tee -a $LOGFILE 2>&1
 Count=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["count"];')
 
 echo "---create a replication controller for todolist-strongloop---" | tee -a $LOGFILE 2>&1
-cat << 'EOF' > todolist-strongloop-deployment.yaml
+cat << EOF > todolist-strongloop-deployment.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -280,7 +280,7 @@ kubectl create -f todolist-strongloop-service.yaml | tee -a $LOGFILE 2>&1
 #################################################################
 
 echo "---create a replication controller for todolist-angularjs---" | tee -a $LOGFILE 2>&1
-cat << 'EOF' > todolist-angularjs-deployment.yaml
+cat << EOF > todolist-angularjs-deployment.yaml
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
