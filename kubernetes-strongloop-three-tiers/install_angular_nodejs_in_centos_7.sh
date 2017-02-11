@@ -26,7 +26,7 @@ echo "---finish installing node.js---" | tee -a $logfile 2>&1
 
 echo "---start installing angularjs---" | tee -a $logfile 2>&1 
 npm install -g grunt-cli bower yo generator-karma generator-angular >> $logfile 2>&1 || { echo "---Failed to install angular tools---" | tee -a $logfile; exit 1; }
-yum install gcc ruby ruby-devel rubygems -y >> $logfile 2>&1 || { echo "---Failed to install ruby---" | tee -a $logfile; exit 1; }
+yum install gcc ruby ruby-devel rubygems make -y >> $logfile 2>&1 || { echo "---Failed to install ruby---" | tee -a $logfile; exit 1; }
 gem install compass >> $logfile 2>&1 || { echo "---Failed to install compass---" | tee -a $logfile; exit 1; }
 echo "---finish installing angularjs---" | tee -a $logfile 2>&1 
 
