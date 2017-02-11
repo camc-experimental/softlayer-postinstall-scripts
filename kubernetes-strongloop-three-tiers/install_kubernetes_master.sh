@@ -304,7 +304,6 @@ kubectl create -f todolist-angularjs-deployment.yaml | tee -a $LOGFILE 2>&1
 
 echo "--deploy angularjs and its sample---" | tee -a $LOGFILE 2>&1
 
-RepoDir=https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers
 InstallAngularjsScript=install_angular_nodejs_in_centos_7.sh
 
 AngularjsPods=$(kubectl get pod | grep "todolist-angularjs-deployment" | awk '{print $1}' | xargs | sed -e 's/ /,/g')
