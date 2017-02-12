@@ -10,13 +10,18 @@
 
 LOGFILE="/var/log/install_kubernetes_minion.log"
 
-#Avoid duplicately executing this script
+#################################################################
+# Set flag to avoid to re-execute the script
+#################################################################
 if [ -f /root/post_script_executed ]; then
 	echo "---postInstallScript is already executed---" | tee -a $LOGFILE 2>&1
 	exit 0
 fi
 touch /root/post_script_executed
 
+#################################################################
+# Set up hostname and obtain IP
+#################################################################
 echo "---start hostname, ip address setup---" | tee -a $LOGFILE 2>&1
 
 yum install curl -y
@@ -29,7 +34,6 @@ MYHOSTNAME=$(dig -x $MYIP +short | sed -e 's/.$//')
 echo "---my dns hostname is $MYHOSTNAME---" | tee -a $LOGFILE 2>&1
 
 hostnamectl set-hostname $MYHOSTNAME
-
 
 mkdir userdata
 mount /dev/xvdh1 userdata 

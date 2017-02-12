@@ -10,15 +10,19 @@ set -o pipefail
 
 LOGFILE="/var/log/install_kubernetes_master.log"
 
-#Avoid duplicately executing this script
+#################################################################
+# Set flag to avoid to re-execute the script
+#################################################################
 if [ -f /root/post_script_executed ]; then
 	echo "---postInstallScript is already executed---" | tee -a $LOGFILE 2>&1
 	exit 0
 fi
 touch /root/post_script_executed
 
+#################################################################
+# Set up hostname and obtain IP
+#################################################################
 echo "---start hostname, ip address setup---" | tee -a $LOGFILE 2>&1
-
 yum install curl -y
 yum install bind-utils -y
 
@@ -29,7 +33,6 @@ MYHOSTNAME=$(dig -x $MYIP +short | sed -e 's/.$//')
 echo "---my dns hostname is $MYHOSTNAME---" | tee -a $LOGFILE 2>&1
 
 hostnamectl set-hostname $MYHOSTNAME
-
 echo "---start installing kubernetes master node on $MYHOSTNAME---" | tee -a $LOGFILE 2>&1 
 
 #################################################################
@@ -42,7 +45,6 @@ setenforce 0
 yum install etcd -y >> $LOGFILE 2>&1 || { echo "---Failed to install etcd---" | tee -a $LOGFILE; exit 1; }
 yum install flannel -y >> $LOGFILE 2>&1 || { echo "---Failed to install flannel---" | tee -a $LOGFILE; exit 1; }
 yum install kubernetes -y >> $LOGFILE 2>&1 || { echo "---Failed to install kubernetes---" | tee -a $LOGFILE; exit 1; }
-
 
 #################################################################
 # configure etcd
@@ -116,13 +118,11 @@ curl -O https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-das
 sed -i "s/# - --apiserver-host=http:\/\/my-address:port/- --apiserver-host=http:\/\/$MYIP:8080/g" kubernetes-dashboard.yaml
 
 kubectl create -f kubernetes-dashboard.yaml | tee -a $LOGFILE 2>&1
-
 echo "---kubernetes master node installed successfully---" | tee -a $LOGFILE 2>&1
 
 #################################################################
 # create a todolist-mongodb deployment
 #################################################################
-
 echo "---create a replication controller for todolist-mongodb---" | tee -a $LOGFILE 2>&1
 cat << EOF > todolist-mongodb-deployment.yaml
 apiVersion: extensions/v1beta1
@@ -187,16 +187,13 @@ EOF
 
 kubectl create -f todolist-mongodb-service.yaml | tee -a $LOGFILE 2>&1
 
-
 #################################################################
 # create a todolist-strongloop deployment
 #################################################################
-
 Count=$(cat userdata/meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["count"];')
 
-RepoDir=https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/kubernetes-strongloop-three-tiers/kubernetes-strongloop-three-tiers
+RepoDir=https://raw.githubusercontent.com/camc-experimental/softlayer-postinstall-scripts/master/kubernetes-strongloop-three-tiers
 InstallStrongloopScript=install_strongloop_nodejs_in_centos_7.sh
-
 
 echo "---create a replication controller for todolist-strongloop---" | tee -a $LOGFILE 2>&1
 cat << EOF > todolist-strongloop-deployment.yaml
@@ -215,14 +212,12 @@ spec:
       - name: todolist-strongloop
         image: centos:latest
         command: ["/bin/bash"]
-#        args: ["-c", "sleep infinity"]
         args: ["-c", "curl -kO $RepoDir/$InstallStrongloopScript;bash $InstallStrongloopScript $MYIP $DBUserPwd;sleep infinity"]
         ports:
         - containerPort: 3000
 EOF
 
 kubectl create -f todolist-strongloop-deployment.yaml | tee -a $LOGFILE 2>&1
-
 
 #################################################################
 # define a service for the todolist-strongloop deployment
@@ -244,11 +239,9 @@ EOF
 
 kubectl create -f todolist-strongloop-service.yaml | tee -a $LOGFILE 2>&1
 
-
 #################################################################
 # create a todolist-angularjs deployment
 #################################################################
-
 InstallAngularjsScript=install_angular_nodejs_in_centos_7.sh
 
 echo "---create a replication controller for todolist-angularjs---" | tee -a $LOGFILE 2>&1
@@ -268,14 +261,12 @@ spec:
       - name: todolist-angularjs
         image: centos:latest
         command: ["/bin/bash"]
-#        args: ["-c", "sleep infinity"]
         args: ["-c", "curl -kO $RepoDir/$InstallAngularjsScript;bash $InstallAngularjsScript $MYIP;sleep infinity"]
         ports:
         - containerPort: 8090
 EOF
 
 kubectl create -f todolist-angularjs-deployment.yaml | tee -a $LOGFILE 2>&1
-
 
 #################################################################
 # define a service for the todolist-angularjs deployment
@@ -296,7 +287,6 @@ spec:
 EOF
 
 kubectl create -f todolist-angularjs-service.yaml | tee -a $LOGFILE 2>&1
-
 
 #################################################################
 # reboot
