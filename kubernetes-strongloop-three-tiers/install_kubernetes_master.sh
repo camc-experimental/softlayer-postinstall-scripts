@@ -299,7 +299,7 @@ spec:
         image: centos:latest
         command: ["/bin/bash"]
 #        args: ["-c", "sleep infinity"]
-        args: ["-c", "curl -kO $RepoDir/$InstallAngularjsScript;bash $InstallAngularjsScript $MYIP"]
+        args: ["-c", "curl -kO $RepoDir/$InstallAngularjsScript;bash $InstallAngularjsScript $MYIP &"]
         ports:
         - containerPort: 8090
 EOF
