@@ -9,7 +9,7 @@ cd userdata
 PRIVATE_GATEWAY=$(cat meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["gateway"];')
 EXAMPLE_VM_NUMBER=$(cat meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["example_vm_number"];')
 
-if [ $EXAMPLE_VM_NUMBER == "vm3" ]; then
+if [ $EXAMPLE_VM_NUMBER == "vm1" ]; then
 	VPN_SUBNET=$(cat meta.js | python -c 'import json,sys; unwrap1=json.load(sys.stdin)[0]; map=json.loads(unwrap1); print map["vpn_subnet"];')
 	echo "$VPN_SUBNET via $PRIVATE_GATEWAY" >> /etc/sysconfig/network-scripts/route-eth0
 	service network restart
