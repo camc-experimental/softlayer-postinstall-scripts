@@ -14,8 +14,6 @@
 #
 #################################################################
 
-touch sample.txt
-
 mkdir userdata
 mount /dev/xvdh1 userdata 
 cd userdata
